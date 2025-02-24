@@ -40,8 +40,8 @@ Before you begin, ensure you have met the following requirements:
 
 1. Clone the repository
 ```bash
-git clone https://github.com/engkufizz/Student_Fee_Management.git
-cd Student_Fee_Management
+git clone https://github.com/engkufizz/Fee_Management_System.git
+cd Fee_Management_System
 ```
 
 2. Install frontend dependencies
@@ -95,7 +95,7 @@ npm start
 ## Project Structure
 
 ```
-Student_Fee_Management/
+Fee_Management_System/
 ├── frontend/
 │   ├── public/
 │   └── src/
