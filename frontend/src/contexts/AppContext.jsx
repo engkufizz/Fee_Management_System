@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 
@@ -9,6 +9,16 @@ export const AppProvider = ({ children }) => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [mode, setMode] = useState('light'); // Add theme mode state
+
+  const colorMode = useMemo( // Memoize the toggle function
+    () => ({
+      toggleColorMode: () => {
+        setMode((prevMode) => (prevMode === 'light' ? 'dark' : 'light'));
+      },
+    }),
+    [],
+  );
   
   const showLoading = useCallback((message = 'Loading...') => {
     setLoading(message);
@@ -26,7 +36,7 @@ export const AppProvider = ({ children }) => {
     setError(null);
   }, []);
 
-  const value = {
+  const value = useMemo(() => ({ // Memoize the context value
     loading,
     showLoading,
     hideLoading,
@@ -34,7 +44,10 @@ export const AppProvider = ({ children }) => {
     showError,
     clearError,
     isMobile,
-  };
+    mode, // Provide mode
+    toggleColorMode: colorMode.toggleColorMode, // Provide toggle function
+  }), [loading, showLoading, hideLoading, error, showError, clearError, isMobile, mode, colorMode.toggleColorMode]);
+
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
