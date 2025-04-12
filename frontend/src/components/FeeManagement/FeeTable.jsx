@@ -18,18 +18,50 @@ import SearchIcon from '@mui/icons-material/Search';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import { styled } from '@mui/material/styles';
 
+// Apply scrolling specifically to the virtual scroller
 const StyledDataGrid = styled(DataGrid)(({ theme }) => ({
   border: 'none',
-  '& .MuiDataGrid-cell': {
-    borderColor: theme.palette.divider,
+  // Ensure the root grid takes available width but doesn't force overflow itself
+  width: '100%',
+  '& .MuiDataGrid-main': {
+    // Prevent the main container from having its own scrollbars
+    overflow: 'hidden',
+  },
+  '& .MuiDataGrid-virtualScroller': {
+    // THIS is the container that should scroll horizontally
+    overflowX: 'auto !important',
+    overflowY: 'auto', // Allow vertical scrolling too
+    backgroundColor: theme.palette.background.paper,
+    // Optional: Style scrollbar for better visibility if needed
+    '&::-webkit-scrollbar': {
+      height: '8px',
+      width: '8px',
+    },
+    '&::-webkit-scrollbar-thumb': {
+      backgroundColor: theme.palette.mode === 'dark' ? theme.palette.grey[600] : theme.palette.grey[300],
+      borderRadius: '4px',
+    },
   },
   '& .MuiDataGrid-columnHeaders': {
     backgroundColor: theme.palette.primary.main,
     color: theme.palette.primary.contrastText,
     borderRadius: '8px 8px 0 0',
+    // Prevent headers from wrapping excessively if desired, or allow wrapping
+    whiteSpace: 'normal', // Allow header text wrapping
+    wordWrap: 'break-word',
+    lineHeight: 1.3,
   },
-  '& .MuiDataGrid-virtualScroller': {
-    backgroundColor: theme.palette.background.paper,
+  '& .MuiDataGrid-columnHeaderTitleContainer': {
+     padding: '4px 0', // Adjust padding for wrapped header text
+  },
+  '& .MuiDataGrid-cell': {
+    borderColor: theme.palette.divider,
+    whiteSpace: 'normal !important', // Force text wrapping in cells
+    wordWrap: 'break-word !important',
+    lineHeight: '1.4 !important', // Adjust line height for readability
+    padding: '8px', // Adjust padding as needed
+    display: 'flex', // Use flexbox for better alignment
+    alignItems: 'center', // Center content vertically
   },
   '& .MuiDataGrid-footerContainer': {
     borderTop: `1px solid ${theme.palette.divider}`,
@@ -56,62 +88,53 @@ const FeeTable = ({ data, onEdit, onDelete, feeType }) => {
     setFilterAnchorEl(null);
   };
 
+  // Define columns with fixed widths to ensure content overflows horizontally
   const columns = [
-    {
+     {
       field: 'studentNo',
       headerName: 'Student No',
-      flex: 0.8,
-      renderCell: (params) => (
-        <Typography variant="body2" fontWeight="500">
-          {params.value}
-        </Typography>
-      ),
+      width: 120, // Use fixed width
     },
     {
       field: 'studentName',
       headerName: 'Student Name',
-      flex: 1.2,
-      renderCell: (params) => (
-        <Typography variant="body2">{params.value}</Typography>
-      ),
+      width: 150, // Use fixed width
     },
     {
       field: 'receiptNo',
       headerName: 'Receipt No',
-      flex: 1,
+      width: 120, // Use fixed width
     },
     {
       field: 'payment',
       headerName: 'Amount',
-      flex: 1,
+      width: 100, // Use fixed width
       renderCell: (params) => (
-        <Typography variant="body2">
-          RM {parseFloat(params.value).toFixed(2)}
-        </Typography>
+        `RM ${parseFloat(params.value).toFixed(2)}`
       ),
     },
     {
       field: 'description',
       headerName: 'Description',
-      flex: 1.5,
+      width: 200, // Use fixed width, maybe wider for descriptions
     },
     {
       field: 'extraInfo',
       headerName: 'Extra Info',
-      flex: 1,
+      width: 150, // Use fixed width
     },
     {
       field: 'actions',
       headerName: 'Actions',
-      flex: 0.8,
+      width: 100, // Use fixed width
       sortable: false,
       renderCell: (params) => (
-        <Box>
+        <Box sx={{ display: 'flex', gap: 0.5 }}>
           <Tooltip title="Edit">
             <IconButton
               onClick={() => onEdit(params.row)}
               size="small"
-              sx={{ color: 'primary.main' }}
+              sx={{ color: 'primary.main', padding: '4px' }}
             >
               <EditIcon fontSize="small" />
             </IconButton>
@@ -120,7 +143,7 @@ const FeeTable = ({ data, onEdit, onDelete, feeType }) => {
             <IconButton
               onClick={() => onDelete(params.row)}
               size="small"
-              sx={{ color: 'error.main' }}
+              sx={{ color: 'error.main', padding: '4px' }}
             >
               <DeleteIcon fontSize="small" />
             </IconButton>
@@ -130,14 +153,15 @@ const FeeTable = ({ data, onEdit, onDelete, feeType }) => {
     },
   ];
 
-  // Filter data based on search text
   const filteredData = data.filter((row) => {
     const searchString = searchText.toLowerCase();
+    // Ensure all potential fields exist before calling toLowerCase
     return (
-      row.studentNo.toLowerCase().includes(searchString) ||
-      row.studentName.toLowerCase().includes(searchString) ||
-      row.receiptNo.toLowerCase().includes(searchString) ||
-      row.description.toLowerCase().includes(searchString)
+      (row.studentNo?.toLowerCase() ?? '').includes(searchString) ||
+      (row.studentName?.toLowerCase() ?? '').includes(searchString) ||
+      (row.receiptNo?.toLowerCase() ?? '').includes(searchString) ||
+      (row.description?.toLowerCase() ?? '').includes(searchString) ||
+      (row.extraInfo?.toLowerCase() ?? '').includes(searchString)
     );
   });
 
@@ -145,31 +169,38 @@ const FeeTable = ({ data, onEdit, onDelete, feeType }) => {
     <Card
       elevation={3}
       sx={{
-        height: 600,
         width: '100%',
         borderRadius: 2,
-        '& .MuiDataGrid-root': {
-          border: 'none',
-        },
+        display: 'flex', // Use flexbox for layout
+        flexDirection: 'column', // Stack children vertically
+        overflow: 'hidden', // IMPORTANT: Prevent Card itself from scrolling
+        // Set a specific height for the card, or use viewport units
+        // Adjust this height as needed for your layout
+        height: { xs: '75vh', sm: '70vh', md: '65vh' },
+        // Alternatively, you could use a fixed pixel height like:
+        // height: '650px',
       }}
     >
-      <Box sx={{ p: 2 }}>
+      {/* Header Box (Search, Filter, Title) */}
+      <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider', flexShrink: 0 }}>
         <Box
           sx={{
             display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' }, // Stack on mobile
             justifyContent: 'space-between',
-            alignItems: 'center',
-            mb: 2,
+            alignItems: { xs: 'stretch', sm: 'center' }, // Align differently on mobile
+            gap: 2, // Add gap between items
+            // mb: 2, // Removed margin bottom as padding is on parent
           }}
         >
-          <Typography variant="h6" color="primary">
+          <Typography variant="h6" color="primary" sx={{ textAlign: { xs: 'center', sm: 'left' } }}>
             {feeType} Fee Records
           </Typography>
-          <Box sx={{ display: 'flex', gap: 2 }}>
+          <Box sx={{ display: 'flex', gap: 2, justifyContent: { xs: 'center', sm: 'flex-end' } }}>
             <TextField
               size="small"
               variant="outlined"
-              placeholder="Search records..."
+              placeholder="Search..." // Shorten placeholder
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
               InputProps={{
@@ -179,6 +210,7 @@ const FeeTable = ({ data, onEdit, onDelete, feeType }) => {
                   </InputAdornment>
                 ),
               }}
+              sx={{ maxWidth: { xs: '100%', sm: '250px' } }} // Control width
             />
             <Button
               variant="outlined"
@@ -189,37 +221,66 @@ const FeeTable = ({ data, onEdit, onDelete, feeType }) => {
             </Button>
           </Box>
         </Box>
-
-        <StyledDataGrid
-          rows={filteredData}
-          columns={columns}
-          pageSize={10}
-          rowsPerPageOptions={[10, 25, 50]}
-          checkboxSelection
-          disableSelectionOnClick
-          onSelectionModelChange={(newSelection) => {
-            setSelectedRows(newSelection);
-          }}
-          components={{
-            Toolbar: GridToolbar,
-          }}
-          componentsProps={{
-            toolbar: {
-              showQuickFilter: true,
-              quickFilterProps: { debounceMs: 500 },
-            },
-          }}
-          sx={{
-            '& .MuiDataGrid-virtualScrollerRenderZone': {
-              '& .MuiDataGrid-row': {
-                '&:nth-of-type(2n)': {
-                  backgroundColor: 'rgba(0, 0, 0, 0.02)',
-                },
-              },
-            },
-          }}
-        />
       </Box>
+
+      {/* DataGrid container - Make this part grow and manage its height */}
+      <Box sx={{ flexGrow: 1, overflow: 'hidden', width: '100%', position: 'relative' }}>
+          {/* The StyledDataGrid needs to fill this Box */}
+          <StyledDataGrid
+            rows={filteredData}
+            columns={columns}
+            pageSize={10} // Keep page size
+            rowsPerPageOptions={[10, 25, 50]}
+            checkboxSelection
+            disableColumnMenu={false}
+            getRowHeight={() => 'auto'}
+            disableSelectionOnClick
+            onSelectionModelChange={(newSelection) => {
+              setSelectedRows(newSelection);
+            }}
+            components={{
+              Toolbar: GridToolbar,
+            }}
+            componentsProps={{
+              toolbar: {
+                showQuickFilter: false,
+                printOptions: { disableToolbarButton: true },
+                csvOptions: { disableToolbarButton: true },
+              },
+              // Ensure footer is rendered, even if pagination isn't strictly needed
+              // Note: This might show pagination controls even for 0 rows if not handled carefully.
+              // footer: {
+              //   sx: { display: 'flex' } // Simple way to ensure it's part of layout
+              // }
+            }}
+            // Ensure DataGrid fills its container BOX absolutely
+            // This allows the footer to be pinned at the bottom
+            sx={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              height: '100%',
+              width: '100%',
+              '& .MuiDataGrid-virtualScroller': {
+                 // Ensure scroller has correct overflow
+                 overflow: 'auto !important',
+              },
+              '& .MuiDataGrid-footerContainer': {
+                // Ensure footer is visible and doesn't get overlapped
+                zIndex: 1,
+                backgroundColor: (theme) => theme.palette.background.paper, // Match background
+              },
+              '& .MuiDataGrid-row:nth-of-type(even)': {
+                 backgroundColor: (theme) => theme.palette.action.hover,
+              },
+               // Make sure grid itself doesn't add extra borders causing layout shifts
+              border: 'none',
+            }}
+            // Explicitly disable autoHeight
+            autoHeight={false}
+          />
+      </Box>
+
 
       {/* Filter Menu */}
       <Menu
@@ -227,6 +288,7 @@ const FeeTable = ({ data, onEdit, onDelete, feeType }) => {
         open={Boolean(filterAnchorEl)}
         onClose={handleFilterClose}
       >
+        {/* ... (Menu items remain the same) ... */}
         <MenuItem onClick={handleFilterClose}>All Records</MenuItem>
         <MenuItem onClick={handleFilterClose}>Paid</MenuItem>
         <MenuItem onClick={handleFilterClose}>Pending</MenuItem>
