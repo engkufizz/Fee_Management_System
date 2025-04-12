@@ -172,8 +172,14 @@ const YearlyFees = () => {
             await Promise.all(
               backupData.map(record => 
                 feeService.addStudent({
-                  ...record,
-                  feeType: 'yearly'
+                  feeType: 'yearly',
+                  studentNo: record.studentNo,
+                  studentName: record.studentName || record.name, // Handle both name formats
+                  receiptNo: record.receiptNo,
+                  payment: parseFloat(record.payment), // Ensure payment is a number
+                  description: record.description,
+                  extraInfo: record.extraInfo,
+                  timestamp: record.timestamp
                 })
               )
             );
