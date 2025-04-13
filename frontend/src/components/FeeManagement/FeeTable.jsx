@@ -171,14 +171,16 @@ const FeeTable = ({ data, onEdit, onDelete, feeType }) => {
       sx={{
         width: '100%',
         borderRadius: 2,
-        display: 'flex', // Use flexbox for layout
-        flexDirection: 'column', // Stack children vertically
-        overflow: 'hidden', // IMPORTANT: Prevent Card itself from scrolling
-        // Set a specific height for the card, or use viewport units
-        // Adjust this height as needed for your layout
-        height: { xs: '75vh', sm: '70vh', md: '65vh' },
-        // Alternatively, you could use a fixed pixel height like:
-        // height: '650px',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+        // Making the height 5 times taller using fixed pixel heights
+        height: { 
+          xs: '500vh',  // 5 times taller (was 95vh)
+          sm: '500vh',  // 5 times taller (was 92vh)
+          md: '500vh'   // 5 times taller (was 90vh)
+        },
+        maxHeight: '5000px', // Adding a max-height to ensure it doesn't get too tall
       }}
     >
       {/* Header Box (Search, Filter, Title) */}
@@ -229,8 +231,8 @@ const FeeTable = ({ data, onEdit, onDelete, feeType }) => {
           <StyledDataGrid
             rows={filteredData}
             columns={columns}
-            pageSize={10} // Keep page size
-            rowsPerPageOptions={[10, 25, 50]}
+            pageSize={500} // Significantly increased to show many more rows
+            rowsPerPageOptions={[100, 250, 500]} // Updated options for many more rows
             checkboxSelection
             disableColumnMenu={false}
             getRowHeight={() => 'auto'}
@@ -262,8 +264,9 @@ const FeeTable = ({ data, onEdit, onDelete, feeType }) => {
               height: '100%',
               width: '100%',
               '& .MuiDataGrid-virtualScroller': {
-                 // Ensure scroller has correct overflow
                  overflow: 'auto !important',
+                 // Ensure smooth scrolling for the larger content
+                 scrollBehavior: 'smooth',
               },
               '& .MuiDataGrid-footerContainer': {
                 // Ensure footer is visible and doesn't get overlapped
